@@ -1,0 +1,291 @@
+<header class="navbar navbar-inverse navbar-fixed-top">
+<div class="container">
+<div class="navbar-header">
+  <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+    <span class="sr-only">Toggle navigation</span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+  </button>
+  <a href="/" class="navbar-brand" alt="app-context">
+    <img src="/images/logo-white.png">
+  </a>
+</div>
+<nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+  <ul class="nav navbar-nav navbar-right">
+    <li>
+      <p class="navbar-text" style="margin-top:13px">
+        <a href="https://github.com/app-context/app-context" target="_blank">
+          <img src="https://img.shields.io/github/stars/app-context/app-context.svg?style=social&label=Star">
+        </a>
+      </p>
+    </li>
+  </ul>
+</nav>
+</div>
+</header>
+
+<div class="jumbotron">
+<div class="container">
+<h1>app-context</h1>
+<p>Sequential bootloader and context for node applications</p>
+</div>
+</div>
+
+<div class="body-wrapper">
+<div class="container">
+<div class="row">
+  <div class="col-md-3">
+    <div class="sidebar affix-top">
+      <div id="navigation">
+        <ul class="nav sidenav">
+          <li><a href="#installation">Installation</a></li>
+          <li><a href="#usage">Usage</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-9 docs">
+    <h2>Installation</h2><pre><code class="language-bash">$ npm install -g app-context
+</code></pre>
+<h2>Usage</h2><p>To use <code>app-context</code> to boot your application all you need is to install
+<code>app-context</code> globally and then create your context file. By default, <code>app-context</code>
+expects an <code>app-context.js</code> file in the application&#39;s root directory.</p>
+<h3>The <code>app-context.js</code> file</h3><p>Your context file should export a method that will set up the different run
+levels that <code>app-context</code> will load. Each level is made up of one or more
+initializers that will be run sequentially. If any initializer fails, the entire
+boot process will fail.</p>
+<p>To set up a run level, just use <code>this.runlevel(&#39;runlevel name&#39;)</code> and then
+call <code>.use(...)</code> on the run level.</p>
+<p>Here&#39;s a sample app-context.js file.</p>
+<pre><code class="language-javascript">var myInitializer = require(&#39;./my-initializer&#39;);
+var initializeModels = require(&#39;./initialize-models&#39;);
+
+module.exports = function() {
+// initializers that run at the configured run level
+this.runlevel(&#39;configured&#39;)
+// read a JSON file for the current environment (development by default)
+// and assign it to APP.config
+.use(&#39;connie&#39;, &#39;file&#39;, &#39;config/${environment}.json&#39;);
+
+// initializers that run at the connected run level
+this.runlevel(&#39;connected&#39;)
+// connect to redis endpoints listed at APP.config.redis.cache and APP.config.redis.sessions
+// and assign {cache: ..., sessions:...} to APP.redis
+.use(&#39;redis&#39;, {
+  cache: &#39;$redis.cache&#39;,
+  sessions: &#39;$redis.sessions&#39;
+})
+// connect to the mongodb endpoint listed at APP.config.mongodb
+// and assign it to APP.mongodb
+.use(&#39;mongodb&#39;, &#39;$mongodb&#39;)
+// custom initializer
+.use(myInitializer);
+
+// initializers that run at the initialized run level
+this.runlevel(&#39;initialized&#39;)
+// custom initializer that takes configuration
+.use(initializeModels, &#39;$model-config&#39;);
+
+// initializers that run at the connected running level
+this.runlevel(&#39;running&#39;)
+// in-line custom initializer using a callback
+.use(function(context, done) {
+  require(&#39;./my-application&#39;)(done);
+});
+};
+</code></pre>
+<p>Above you can see a few different types of initializers being used. There are
+two high-level types: auto-installed and custom. Auto-installed initializers
+are simply npm packages that are named <code>app-context-{initializer name}</code>. Custom
+initializers are methods that are supplied by your application. They work the
+exact same way.</p>
+<h3>Passing configuration to initializers</h3><p>Sometimes your initializers will need some extra configuration. For example, the
+auto-installed mysql initializer requires that you pass in the connection
+string of the database server(s) you wish to connect to. You can either pass
+this information directly to the initializer, or let <code>app-context</code> lazily pass
+through that information from another source. This is incredibly useful for
+separating your application&#39;s configuration from the initialization process.</p>
+<p>Configuration can be passed into the initializer by adding more arguments to the
+<code>.use(...)</code> call. Configuration that you add to the <code>use</code> call is only resolved
+and passed to the initializer when the initializer is about to be executed.</p>
+<h4>- from APP.config</h4><p>To pass values from your configuration, pass a string starting with <code>$</code>,
+followed by the path of the configuration value you&#39;d like to be passed.</p>
+<p>For instance, given the following value of <code>APP.config</code>:</p>
+<pre><code class="language-json">{
+&quot;mysql&quot;: &quot;mysql://localhost:3306/foobar&quot;,
+&quot;redis&quot;: {
+&quot;cache&quot;: &quot;redis://localhost/1&quot;,
+&quot;sessions&quot;: &quot;redis://localhost/2&quot;
+},
+&quot;port&quot;: 3000
+}
+</code></pre>
+<ul>
+<li><code>&quot;$mysql&quot;</code> would resolve to <code>&quot;mysql://localhost:3306/foobar&quot;</code></li>
+<li><code>&quot;$redis&quot;</code> would resolve to <code>{&quot;cache&quot;: &quot;redis://localhost/1&quot;, &quot;sessions&quot;: &quot;redis://localhost/2&quot;}</code></li>
+<li><code>&quot;$redis.cache&quot;</code> would resolve to <code>&quot;redis://localhost/1&quot;</code></li>
+<li><code>&quot;$port&quot;</code> would resolve to <code>3000</code></li>
+</ul>
+<h4>- from environment variables or the context</h4><p>To pass or substitute values from either an environment variable or from the context (<code>APP</code>) that is being created, enclose the value in <code>${}</code>.</p>
+<p>For instance, given the environment variable <code>SOME_ENV=production</code>:</p>
+<ul>
+<li><code>&quot;config/${SOME_ENV}.json&quot;</code> would resolve to <code>&quot;config/production.json&quot;</code> (from the SOME_ENV environemtn variable)</li>
+<li><code>&quot;config/${environment}.json&quot;</code> would resolve to <code>&quot;config/development.json&quot;</code> (from APP.environment)</li>
+<li>&quot;<code>${version}</code>&quot; would resolve to <code>{&quot;major&quot;: 0, &quot;minor&quot;: 0, &quot;patch&quot;: 1}</code> (from APP.version given a package.json with {&quot;version&quot;:&quot;0.0.1&quot;} in it)</li>
+</ul>
+<h3>Automatically installed initializers (via NPM)</h3><p>To use an auto-installed initializer, just pass the initializer name as the
+first argument to a <code>.use(...)</code> method. For instance, to use the mongodb
+initializer, just call <code>.use(&#39;mongodb&#39;, &#39;mongdb://localhost:27017/foobar&#39;)</code>.</p>
+<p>When an auto-installed initializer is executed, it will first try to require the
+package named <code>app-context-{initializer name}</code>. If that package does not exist
+in your <code>node_modules</code> directory, <code>app-context</code> will attempt to npm install that
+package, saving it to your <code>package.json</code> file.</p>
+<h4>Available initializers</h4><p>For a list of currently available initializers that can be auto-installed, check
+out <a href="https://www.npmjs.com/browse/keyword/app-context">https://www.npmjs.com/browse/keyword/app-context</a> for now. There will be a
+listing webpage at some point in the future.</p>
+<h2>Run Levels</h2><p>Run levels represent the different states that application can be in. They are
+loaded sequentially. So when you load your application to the <code>initialized</code> run
+level, <code>app-context</code> will first load the <code>setup</code>, <code>configured</code>, and <code>connected</code>
+run levels first.</p>
+<p>You can reference run levels either by their number or by their name. The lowest
+run level is 0 and the highest is 10.</p>
+<ul>
+<li>(1) <strong>setup</strong></li>
+<li>(3) <strong>configured</strong></li>
+<li>(5) <strong>connected</strong></li>
+<li>(7) <strong>initialized</strong></li>
+<li>(9) <strong>running</strong></li>
+</ul>
+<h2>Initializers</h2><p>Initializers are simply methods that take the current context object. They
+can be synchronous or asynchronous, depending on your needs. To make an
+asynchronous initializer, simply return a promise or accept a second parameter
+as the done callback.</p>
+<h3>Synchronous Initializers</h3><pre><code class="language-javascript">function init(context) {
+context.foo = &#39;foobar&#39;;
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="language-javascript">function init(name) {
+return function(context) {
+context.name = name;
+};
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init(&#39;foobar&#39;))
+.use(init, &#39;foobar&#39;)
+.use(init, &#39;$name&#39;);
+};
+</code></pre>
+<h3>Asynchronous Initializers (callbacks)</h3><pre><code class="language-javascript">function init(context, done) {
+setTimeout(done, 1000);
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="language-javascript">function(name) {
+return function(context, done) {
+setTimeout(function() {
+  context.name = name;
+  done();
+}, 1000);
+};
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init(&#39;foobar&#39;))
+.use(init, &#39;foobar&#39;)
+.use(init, &#39;$name&#39;);
+};
+</code></pre>
+<h3>Asynchronous Initializers (promises)</h3><pre><code class="language-javascript">var Promise = require(&#39;bluebird&#39;);
+
+function init(context) {
+// either
+return promisedAction(context);
+
+// or
+return new Promise(function(resolve, reject) {
+setTimeout(resolve, 1000);
+});
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="language-javascript">var Promise = require(&#39;bluebird&#39;);
+
+function init(name) {
+return function(context) {
+// either
+return promisedAction(context, name);
+
+// or
+return new Promise(function(resolve, reject) {
+  setTimeout(function() {
+    context.name = name;
+    resolve();
+  }, 1000);
+});
+};
+}
+
+module.exports = function() {
+this.runlevel(&#39;initialized&#39;)
+.use(init(&#39;foobar&#39;))
+.use(init, &#39;foobar&#39;)
+.use(init, &#39;$name&#39;);
+};
+</code></pre>
+<h2>Accessing Your Context</h2><p>Once your context is loaded, it will be available in the <code>APP</code> global. This allows
+you to easily access your current context from everywhere in your app.</p>
+<p>For example, a simple controller that accesses a User model that was initialized during
+the boot process might look like this.</p>
+<pre><code class="language-javascript">// index handler
+var User = APP.models.User;
+
+exports.index = function(req, res, next) {
+User.array().then(function(users) {
+res.render(&#39;users/index&#39;, users);
+});
+};
+</code></pre>
+<h3>Properties automatically added to the context</h3><ul>
+<li>APP.<strong>package</strong> - <em>contents of the package.json</em></li>
+<li>APP.<strong>name</strong> - <em>name of the app (from package.json)</em></li>
+<li>APP.version.<strong>major</strong> - <em>major version of the app (from package.json)</em></li>
+<li>APP.version.<strong>minor</strong> - <em>minor version of the app (from package.json)</em></li>
+<li>APP.version.<strong>patch</strong> - <em>patch version of the app (from package.json)</em></li>
+<li>APP.<strong>root</strong> - <em>root directory of the app (where the package.json or app-context.js was found)</em></li>
+<li>APP.<strong>environment</strong> - <em>NODE_ENV environment variable - defaults to <code>development</code></em></li>
+<li>APP.<strong>config</strong> - <em>where configuration should be written to (defaulted to <code>{}</code>)</em></li>
+<li>APP.<strong>runlevels</strong> - <em>(internal)</em></li>
+<li>APP.<strong>currentRunlevel</strong> - <em>(internal)</em></li>
+</ul>
+
+ </div>
+</div>
+</div>
+</div>
+
+<footer>
+<div class="container">
+<div class="social">
+  <iframe src="https://ghbtns.com/github-btn.html?user=app-context&repo=app-context&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+</div>
+<p>app-context and documentation is maintained by <a href="">Matt Insler</a>.</p>
+<p>Source code and documentation released until the <a href="https://github.com/app-context/app-context/blob/master/LICENSE-MIT">MIT License</a>.
+</p></div>
+</footer>
