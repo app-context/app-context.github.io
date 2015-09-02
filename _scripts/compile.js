@@ -1,0 +1,40 @@
+var path = require('path');
+var harp = require('harp');
+var highlight = require('highlight.js');
+var exec = require('child_process').exec;
+var marked = require('harp/node_modules/terraform/node_modules/marked');
+
+var root = path.join(__dirname, '..');
+var dir = {
+  root: root,
+  harp: path.join(root, '_harp'),
+  www: path.join(root, 'www')
+};
+
+marked.setOptions({
+  langPrefix: '',
+  highlight: function (code, language) {
+    return language ? highlight.highlight(language, code).value : code;
+  }
+});
+
+function compile(cb) {
+  harp.compile(dir.harp, dir.www, function(err) {
+    setTimeout(function() {
+      exec([
+        'cp -r ' + dir.harp + '/images ' + dir.www + '/',
+        'rm -rf ' + dir.www + '/bower_components',
+        'mkdir -p ' + dir.www + '/bower_components/jquery/dist',
+        'cp ' + dir.harp + '/bower_components/jquery/dist/jquery.min.js ' + dir.www + '/bower_components/jquery/dist/',
+        'mkdir -p ' + dir.www + '/bower_components/components-bootstrap/js',
+        'cp ' + dir.harp + '/bower_components/components-bootstrap/js/bootstrap.min.js ' + dir.www + '/bower_components/components-bootstrap/js/'
+      ].join(';'), function() {
+        cb();
+      });
+    }, 2000);
+  });
+}
+
+compile(function() {
+  console.log('DONE');
+});
