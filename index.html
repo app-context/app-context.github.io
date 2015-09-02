@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <meta name="description" content="Sequential bootloader and context for node applications">
+    <meta name="author" content="Matt Insler">
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192"  href="/icons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png">
+    <link rel="manifest" href="/icons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>app-context</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/main.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+    <header class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a href="/" class="navbar-brand" alt="app-context">
+        <img src="/images/logo-white.png">
+      </a>
+    </div>
+    <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+          <p class="navbar-text" style="margin-bottom:10px">
+            <iframe src="//ghbtns.com/github-btn.html?user=app-context&repo=app-context&type=star&count=true" frameborder="0" scrolling="0" width="84px" height="20px"></iframe>
+          </p>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>app-context</h1>
+    <p>Sequential bootloader and context for node applications</p>
+  </div>
+</div>
+
+<div class="body-wrapper">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 docs">
+        <h2>Installation</h2><pre><code class="bash">$ npm install -g app-context
+</code></pre>
+<h2>Usage</h2><p>To use <code>app-context</code> to boot your application all you need is to install
+<code>app-context</code> globally and then create your context file. By default, <code>app-context</code>
+expects an <code>app-context.js</code> file in the application&#39;s root directory.</p>
+<h3>The <code>app-context.js</code> file</h3><p>Your context file should export a method that will set up the different run
+levels that <code>app-context</code> will load. Each level is made up of one or more
+initializers that will be run sequentially. If any initializer fails, the entire
+boot process will fail.</p>
+<p>To set up a run level, just use <code>this.runlevel(&#39;runlevel name&#39;)</code> and then
+call <code>.use(...)</code> on the run level.</p>
+<p>Here&#39;s a sample app-context.js file.</p>
+<pre><code class="javascript"><span class="hljs-keyword">var</span> myInitializer = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./my-initializer'</span>);
+<span class="hljs-keyword">var</span> initializeModels = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./initialize-models'</span>);
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// initializers that run at the configured run level</span>
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'configured'</span>)
+    <span class="hljs-comment">// read a JSON file for the current environment (development by default)</span>
+    <span class="hljs-comment">// and assign it to APP.config</span>
+    .use(<span class="hljs-string">'connie'</span>, <span class="hljs-string">'file'</span>, <span class="hljs-string">'config/${environment}.json'</span>);
+
+  <span class="hljs-comment">// initializers that run at the connected run level</span>
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'connected'</span>)
+    <span class="hljs-comment">// connect to redis endpoints listed at APP.config.redis.cache and APP.config.redis.sessions</span>
+    <span class="hljs-comment">// and assign {cache: ..., sessions:...} to APP.redis</span>
+    .use(<span class="hljs-string">'redis'</span>, {
+      cache: <span class="hljs-string">'$redis.cache'</span>,
+      sessions: <span class="hljs-string">'$redis.sessions'</span>
+    })
+    <span class="hljs-comment">// connect to the mongodb endpoint listed at APP.config.mongodb</span>
+    <span class="hljs-comment">// and assign it to APP.mongodb</span>
+    .use(<span class="hljs-string">'mongodb'</span>, <span class="hljs-string">'$mongodb'</span>)
+    <span class="hljs-comment">// custom initializer</span>
+    .use(myInitializer);
+
+  <span class="hljs-comment">// initializers that run at the initialized run level</span>
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    <span class="hljs-comment">// custom initializer that takes configuration</span>
+    .use(initializeModels, <span class="hljs-string">'$model-config'</span>);
+
+  <span class="hljs-comment">// initializers that run at the connected running level</span>
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'running'</span>)
+    <span class="hljs-comment">// in-line custom initializer using a callback</span>
+    .use(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context, done</span>) </span>{
+      <span class="hljs-built_in">require</span>(<span class="hljs-string">'./my-application'</span>)(done);
+    });
+};
+</code></pre>
+<p>Above you can see a few different types of initializers being used. There are
+two high-level types: auto-installed and custom. Auto-installed initializers
+are simply npm packages that are named <code>app-context-{initializer name}</code>. Custom
+initializers are methods that are supplied by your application. They work the
+exact same way.</p>
+<h3>Passing configuration to initializers</h3><p>Sometimes your initializers will need some extra configuration. For example, the
+auto-installed mysql initializer requires that you pass in the connection
+string of the database server(s) you wish to connect to. You can either pass
+this information directly to the initializer, or let <code>app-context</code> lazily pass
+through that information from another source. This is incredibly useful for
+separating your application&#39;s configuration from the initialization process.</p>
+<p>Configuration can be passed into the initializer by adding more arguments to the
+<code>.use(...)</code> call. Configuration that you add to the <code>use</code> call is only resolved
+and passed to the initializer when the initializer is about to be executed.</p>
+<h4>- from APP.config</h4><p>To pass values from your configuration, pass a string starting with <code>$</code>,
+followed by the path of the configuration value you&#39;d like to be passed.</p>
+<p>For instance, given the following value of <code>APP.config</code>:</p>
+<pre><code class="json">{
+  "<span class="hljs-attribute">mysql</span>": <span class="hljs-value"><span class="hljs-string">"mysql://localhost:3306/foobar"</span></span>,
+  "<span class="hljs-attribute">redis</span>": <span class="hljs-value">{
+    "<span class="hljs-attribute">cache</span>": <span class="hljs-value"><span class="hljs-string">"redis://localhost/1"</span></span>,
+    "<span class="hljs-attribute">sessions</span>": <span class="hljs-value"><span class="hljs-string">"redis://localhost/2"</span>
+  </span>}</span>,
+  "<span class="hljs-attribute">port</span>": <span class="hljs-value"><span class="hljs-number">3000</span>
+</span>}
+</code></pre>
+<ul>
+<li><code>&quot;$mysql&quot;</code> would resolve to <code>&quot;mysql://localhost:3306/foobar&quot;</code></li>
+<li><code>&quot;$redis&quot;</code> would resolve to <code>{&quot;cache&quot;: &quot;redis://localhost/1&quot;, &quot;sessions&quot;: &quot;redis://localhost/2&quot;}</code></li>
+<li><code>&quot;$redis.cache&quot;</code> would resolve to <code>&quot;redis://localhost/1&quot;</code></li>
+<li><code>&quot;$port&quot;</code> would resolve to <code>3000</code></li>
+</ul>
+<h4>- from environment variables or the context</h4><p>To pass or substitute values from either an environment variable or from the context (<code>APP</code>) that is being created, enclose the value in <code>${}</code>.</p>
+<p>For instance, given the environment variable <code>SOME_ENV=production</code>:</p>
+<ul>
+<li><code>&quot;config/${SOME_ENV}.json&quot;</code> would resolve to <code>&quot;config/production.json&quot;</code> (from the SOME_ENV environemtn variable)</li>
+<li><code>&quot;config/${environment}.json&quot;</code> would resolve to <code>&quot;config/development.json&quot;</code> (from APP.environment)</li>
+<li>&quot;<code>${version}</code>&quot; would resolve to <code>{&quot;major&quot;: 0, &quot;minor&quot;: 0, &quot;patch&quot;: 1}</code> (from APP.version given a package.json with {&quot;version&quot;:&quot;0.0.1&quot;} in it)</li>
+</ul>
+<h3>Automatically installed initializers (via NPM)</h3><p>To use an auto-installed initializer, just pass the initializer name as the
+first argument to a <code>.use(...)</code> method. For instance, to use the mongodb
+initializer, just call <code>.use(&#39;mongodb&#39;, &#39;mongdb://localhost:27017/foobar&#39;)</code>.</p>
+<p>When an auto-installed initializer is executed, it will first try to require the
+package named <code>app-context-{initializer name}</code>. If that package does not exist
+in your <code>node_modules</code> directory, <code>app-context</code> will attempt to npm install that
+package, saving it to your <code>package.json</code> file.</p>
+<h4>Available initializers</h4><p>For a list of currently available initializers that can be auto-installed, check
+out <a href="https://www.npmjs.com/browse/keyword/app-context">https://www.npmjs.com/browse/keyword/app-context</a> for now. There will be a
+listing webpage at some point in the future.</p>
+<h2>Run Levels</h2><p>Run levels represent the different states that application can be in. They are
+loaded sequentially. So when you load your application to the <code>initialized</code> run
+level, <code>app-context</code> will first load the <code>setup</code>, <code>configured</code>, and <code>connected</code>
+run levels first.</p>
+<p>You can reference run levels either by their number or by their name. The lowest
+run level is 0 and the highest is 10.</p>
+<ul>
+<li>(1) <strong>setup</strong></li>
+<li>(3) <strong>configured</strong></li>
+<li>(5) <strong>connected</strong></li>
+<li>(7) <strong>initialized</strong></li>
+<li>(9) <strong>running</strong></li>
+</ul>
+<h2>Initializers</h2><p>Initializers are simply methods that take the current context object. They
+can be synchronous or asynchronous, depending on your needs. To make an
+asynchronous initializer, simply return a promise or accept a second parameter
+as the done callback.</p>
+<h3>Synchronous Initializers</h3><pre><code class="javascript"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">context</span>) </span>{
+  context.foo = <span class="hljs-string">'foobar'</span>;
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="javascript"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">name</span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context</span>) </span>{
+    context.name = name;
+  };
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init(<span class="hljs-string">'foobar'</span>))
+    .use(init, <span class="hljs-string">'foobar'</span>)
+    .use(init, <span class="hljs-string">'$name'</span>);
+};
+</code></pre>
+<h3>Asynchronous Initializers (callbacks)</h3><pre><code class="javascript"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">context, done</span>) </span>{
+  setTimeout(done, <span class="hljs-number">1000</span>);
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="javascript"><span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">name</span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context, done</span>) </span>{
+    setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+      context.name = name;
+      done();
+    }, <span class="hljs-number">1000</span>);
+  };
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init(<span class="hljs-string">'foobar'</span>))
+    .use(init, <span class="hljs-string">'foobar'</span>)
+    .use(init, <span class="hljs-string">'$name'</span>);
+};
+</code></pre>
+<h3>Asynchronous Initializers (promises)</h3><pre><code class="javascript"><span class="hljs-keyword">var</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bluebird'</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">context</span>) </span>{
+  <span class="hljs-comment">// either</span>
+  <span class="hljs-keyword">return</span> promisedAction(context);
+
+  <span class="hljs-comment">// or</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">resolve, reject</span>) </span>{
+    setTimeout(resolve, <span class="hljs-number">1000</span>);
+  });
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init);
+};
+</code></pre>
+<h4>- with configuration</h4><pre><code class="javascript"><span class="hljs-keyword">var</span> <span class="hljs-built_in">Promise</span> = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bluebird'</span>);
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">init</span>(<span class="hljs-params">name</span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context</span>) </span>{
+    <span class="hljs-comment">// either</span>
+    <span class="hljs-keyword">return</span> promisedAction(context, name);
+
+    <span class="hljs-comment">// or</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Promise</span>(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">resolve, reject</span>) </span>{
+      setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+        context.name = name;
+        resolve();
+      }, <span class="hljs-number">1000</span>);
+    });
+  };
+}
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    .use(init(<span class="hljs-string">'foobar'</span>))
+    .use(init, <span class="hljs-string">'foobar'</span>)
+    .use(init, <span class="hljs-string">'$name'</span>);
+};
+</code></pre>
+<h2>Accessing Your Context</h2><p>Once your context is loaded, it will be available in the <code>APP</code> global. This allows
+you to easily access your current context from everywhere in your app.</p>
+<p>For example, a simple controller that accesses a User model that was initialized during
+the boot process might look like this.</p>
+<pre><code class="javascript"><span class="hljs-comment">// index handler</span>
+<span class="hljs-keyword">var</span> User = APP.models.User;
+
+exports.index = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">req, res, next</span>) </span>{
+  User.array().then(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">users</span>) </span>{
+    res.render(<span class="hljs-string">'users/index'</span>, users);
+  });
+};
+</code></pre>
+<h3>Properties automatically added to the context</h3><ul>
+<li>APP.<strong>package</strong> - <em>contents of the package.json</em></li>
+<li>APP.<strong>name</strong> - <em>name of the app (from package.json)</em></li>
+<li>APP.version.<strong>major</strong> - <em>major version of the app (from package.json)</em></li>
+<li>APP.version.<strong>minor</strong> - <em>minor version of the app (from package.json)</em></li>
+<li>APP.version.<strong>patch</strong> - <em>patch version of the app (from package.json)</em></li>
+<li>APP.<strong>root</strong> - <em>root directory of the app (where the package.json or app-context.js was found)</em></li>
+<li>APP.<strong>environment</strong> - <em>NODE_ENV environment variable - defaults to <code>development</code></em></li>
+<li>APP.<strong>config</strong> - <em>where configuration should be written to (defaulted to <code>{}</code>)</em></li>
+<li>APP.<strong>runlevels</strong> - <em>(internal)</em></li>
+<li>APP.<strong>currentRunlevel</strong> - <em>(internal)</em></li>
+</ul>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="social">
+      <iframe src="//ghbtns.com/github-btn.html?user=app-context&repo=app-context&type=star&count=true" frameborder="0" scrolling="0" width="170px" height="20px"></iframe>
+    </div>
+    <p>app-context and documentation is maintained by <a href="https://github.com/mattinsler">Matt Insler</a>.</p>
+    <p>Source code and documentation released until the <a href="https://github.com/app-context/app-context/blob/master/LICENSE-MIT">MIT License</a>.</p>
+  </div>
+</footer>
+
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/components-bootstrap/js/bootstrap.min.js"></script>
+  </body>
+</html>
