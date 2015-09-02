@@ -9,6 +9,7 @@ marked.setOptions({
   }
 });
 
-harp.compile('./_harp', '.', function() {
-  console.log('DONE');
+harp.compile('./_harp', './www', function(err) {
+  if (err) { console.log(err.stack); }
+  console.log('DONE', arguments);
 });
