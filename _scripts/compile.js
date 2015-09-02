@@ -23,6 +23,7 @@ function compile(cb) {
     setTimeout(function() {
       exec([
         'cp -r ' + dir.harp + '/images ' + dir.www + '/',
+        'cp -r ' + dir.harp + '/icons ' + dir.www + '/',
         'rm -rf ' + dir.www + '/bower_components',
         'mkdir -p ' + dir.www + '/bower_components/jquery/dist',
         'cp ' + dir.harp + '/bower_components/jquery/dist/jquery.min.js ' + dir.www + '/bower_components/jquery/dist/',
