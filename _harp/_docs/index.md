@@ -1,4 +1,8 @@
+`app-context` is a sequential bootloader and context for your node.js applications.
+
 ## Installation
+
+Install `app-context` globally to make use of the built-in [Command Line](/command-line).
 
 ```bash
 $ npm install -g app-context

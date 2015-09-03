@@ -1,0 +1,78 @@
+<div class="jumbotron">
+  <div class="container">
+    <h1>Initializers</h1>
+    <p>Sequential bootloader and context for node applications</p>
+  </div>
+</div>
+
+<div class="body-wrapper">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 initializers"></div>
+    </div>
+  </div>
+</div>
+
+<script id="tpl-initializer" type="text/x-template">
+<a class="initializer" href="%repository%" target="_blank">
+  <div class="clearfix">
+    <div class="name" style="float:left;">%name%</div>
+    <div style="float:right;">
+      <ul>
+        <li><i class="fa fa-download"></i> %downloads.month%</li>
+        <li><i class="fa fa-star"></i> %stars%</li>
+      </ul>
+    </div>
+  </div>
+  <div class="description clearfix">
+    <div style="float:left;">%description%</div>
+    <div style="float:right;">
+      v%version%
+    </div>
+  </div>
+</a>
+</script>
+
+<script>
+function formatNumber(n) {
+  n = n.toString().split('').reverse();
+  var parts = [];
+  while (n.length > 0) {
+    parts.unshift(n.slice(0, 3).reverse().join(''));
+    n = n.slice(3);
+  }
+  return parts.join(',');
+}
+
+$(function() {
+  var $ul = $('.initializers');
+  var template = $('#tpl-initializer').html();
+
+  function build(template, data) {
+    var str = template.slice();
+
+    function next(obj, prefix) {
+      Object.keys(obj).forEach(function(k) {
+        var v = obj[k];
+        var key = [prefix, k].filter(function(a){return a;}).join('.');
+        if ($.isPlainObject(v)) {
+          next(v, key);
+        } else {
+          if (typeof(v) === 'number') { v = formatNumber(v); }
+          str = str.replace('%' + key + '%', v);
+        }
+      });
+    }
+
+    next(data);
+
+    return $(str);
+  }
+
+  $.getJSON('http://registry.app-contextjs.com', function(packages) {
+    packages.forEach(function(pkg) {
+      $ul.append(build(template, pkg));
+    });
+  });
+});
+</script>
