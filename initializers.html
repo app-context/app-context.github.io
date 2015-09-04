@@ -162,7 +162,9 @@ $(function() {
   }
 
   $.getJSON('http://registry.app-contextjs.com', function(packages) {
-    packages.forEach(function(pkg) {
+    packages.sort(function(l, r) {
+      return l.name.localeCompare(r.name);
+    }).forEach(function(pkg) {
       $ul.append(build(template, pkg));
     });
   });
