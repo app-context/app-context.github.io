@@ -69,13 +69,13 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse collapse" role="navigation">
           <ul class="nav navbar-nav">
-            <li>
+            <li class="<%= current.source === 'index' ? 'active' : '' %>">
               <a href="/">Docs</a>
             </li>
-            <li>
+            <li class="<%= current.source === 'command-line' ? 'active' : '' %>">
               <a href="/command-line">Command Line</a>
             </li>
-            <li>
+            <li class="<%= current.source === 'initializers' ? 'active' : '' %>">
               <a href="/initializers">Initializers</a>
             </li>
           </ul>

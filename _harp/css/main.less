@@ -28,11 +28,19 @@ header.navbar.navbar-inverse {
     }
   }
 
-  .navbar-nav > li > a {
-    color: lighten(@primary-color, 35%);
+  .navbar-nav {
+    > li > a {
+      color: lighten(@primary-color, 35%);
 
-    &:hover {
-      color: #fff;
+      &:hover {
+        color: #fff;
+      }
+    }
+
+    > .active > a,
+    > .active > a:hover,
+    > .active > a:focus {
+      background-color: darken(@primary-color, 15%);
     }
   }
 }
