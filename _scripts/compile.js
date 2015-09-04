@@ -4,6 +4,14 @@ var highlight = require('highlight.js');
 var exec = require('child_process').exec;
 var marked = require('harp/node_modules/terraform/node_modules/marked');
 
+var BOWER_DEPENDENCIES = [
+  '/bower_components/jquery/dist/jquery.min.js',
+  '/bower_components/components-bootstrap/js/bootstrap.min.js',
+  '/bower_components/font-awesome/fonts/*',
+  '/bower_components/highlightjs/highlight.pack.min.js',
+  '/bower_components/hogan.js/web/builds/3.0.2/hogan-3.0.2.min.js'
+];
+
 var root = path.join(__dirname, '..');
 var dir = {
   root: root,
@@ -23,17 +31,19 @@ function compile(cb) {
     if (err && err.source !== 'Less') { return cb(err); }
 
     setTimeout(function() {
-      exec([
+      var commands = [
         'cp -r ' + dir.harp + '/images ' + dir.www + '/',
         'cp -r ' + dir.harp + '/icons ' + dir.www + '/',
-        'rm -rf ' + dir.www + '/bower_components',
-        'mkdir -p ' + dir.www + '/bower_components/jquery/dist',
-        'cp ' + dir.harp + '/bower_components/jquery/dist/jquery.min.js ' + dir.www + '/bower_components/jquery/dist/',
-        'mkdir -p ' + dir.www + '/bower_components/components-bootstrap/js',
-        'cp ' + dir.harp + '/bower_components/components-bootstrap/js/bootstrap.min.js ' + dir.www + '/bower_components/components-bootstrap/js/',
-        'mkdir -p ' + dir.www + '/bower_components/font-awesome/fonts',
-        'cp ' + dir.harp + '/bower_components/font-awesome/fonts/* ' + dir.www + '/bower_components/font-awesome/fonts/'
-      ].join(';'), function() {
+        'rm -rf ' + dir.www + '/bower_components'
+      ];
+
+      commands = commands.concat(
+        BOWER_DEPENDENCIES.map(function(dep) {
+          return 'mkdir -p ' + dir.www + path.dirname(dep) + ';cp ' + dir.harp + dep + ' ' + dir.www + path.dirname(dep) + '/';
+        })
+      );
+
+      exec(commands.join(';'), function() {
         cb();
       });
     }, 2000);

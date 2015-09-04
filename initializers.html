@@ -69,15 +69,19 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse collapse" role="navigation">
           <ul class="nav navbar-nav">
+          
             <li class="">
-              <a href="/">Docs</a>
+              <a href="/guide">Guide</a>
             </li>
+          
             <li class="">
               <a href="/command-line">Command Line</a>
             </li>
+          
             <li class="active">
               <a href="/initializers">Initializers</a>
             </li>
+          
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li>
@@ -100,30 +104,56 @@
 <div class="body-wrapper">
   <div class="container">
     <div class="row">
-      <div class="col-md-12 initializers"></div>
+      <div class="col-md-12">
+        <p style="font-size:1.5em;margin-bottom:30px">
+          This is a list of re-usable initializers that have been published to
+          <a href="https://www.npmjs.com/" target="_blank">NPM</a>. Each is
+          freely available to be used in your applications. Click on an
+          initializer's name to be taken to it's documentation on github.
+        </p>
+
+        <div class="initializers">
+          Loading initializer list...
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script id="tpl-initializer" type="text/x-template">
-<a class="initializer" href="%repository%" target="_blank">
-  <div class="clearfix">
-    <div class="name" style="float:left;">%name%</div>
-    <div style="float:right;">
-      <ul>
-        <li><i class="fa fa-download"></i> %downloads.month%</li>
-        <li><i class="fa fa-star"></i> %stars%</li>
-      </ul>
+<span class="initializer-wrapper">
+  {{#example}}
+  <div class="example-trigger">example</div>
+  {{/example}}
+  <a class="initializer" href="{{repository}}" target="_blank">
+    <div class="clearfix">
+      <div class="name" style="float:left;">{{name}}</div>
+      <div style="float:right;">
+        <ul>
+          <li><i class="fa fa-download"></i> {{downloads.month}}</li>
+          <li><i class="fa fa-star"></i> {{stars}}</li>
+        </ul>
+      </div>
     </div>
-  </div>
-  <div class="description clearfix">
-    <div style="float:left;">%description%</div>
-    <div style="float:right;">
-      v%version%
+    <div class="description clearfix">
+      <div style="float:left;">{{description}}</div>
+      <div style="float:right;">
+        v{{version}}
+      </div>
     </div>
-  </div>
-</a>
+
+    {{#example}}
+    <div class="example">
+      <div style="font-size:0.9em;margin-top:6px;">Example</div>
+      <pre><code class="javascript">{{example}}</code></pre>
+    </div>
+    {{/example}}
+  </a>
+</span>
 </script>
+
+<script src="/bower_components/highlightjs/highlight.pack.min.js"></script>
+<script src="/bower_components/hogan.js/web/builds/3.0.2/hogan-3.0.2.min.js"></script>
 
 <script>
 function formatNumber(n) {
@@ -137,36 +167,25 @@ function formatNumber(n) {
 }
 
 $(function() {
-  var $ul = $('.initializers');
-  var template = $('#tpl-initializer').html();
+  $(document).on('click', '.example-trigger', function(e) {
+    $(this).next('.initializer').find('.example').slideToggle();
+  });
 
-  function build(template, data) {
-    var str = template.slice();
-
-    function next(obj, prefix) {
-      Object.keys(obj).forEach(function(k) {
-        var v = obj[k];
-        var key = [prefix, k].filter(function(a){return a;}).join('.');
-        if ($.isPlainObject(v)) {
-          next(v, key);
-        } else {
-          if (typeof(v) === 'number') { v = formatNumber(v); }
-          str = str.replace('%' + key + '%', v);
-        }
-      });
-    }
-
-    next(data);
-
-    return $(str);
-  }
+  var $initializers = $('.initializers');
+  var template = Hogan.compile($('#tpl-initializer').html());
 
   $.getJSON('http://registry.app-contextjs.com', function(packages) {
-    packages.sort(function(l, r) {
+    var initializers = packages.sort(function(l, r) {
       return l.name.localeCompare(r.name);
-    }).forEach(function(pkg) {
-      $ul.append(build(template, pkg));
+    }).map(function(pkg) {
+      var $el = $(template.render(pkg));
+      if (pkg.example) {
+        hljs.highlightBlock($el.find('.example pre')[0]);
+      }
+      return $el;
     });
+
+    $initializers.html(initializers);
   });
 });
 </script>

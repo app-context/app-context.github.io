@@ -69,15 +69,19 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse collapse" role="navigation">
           <ul class="nav navbar-nav">
+          
             <li class="">
-              <a href="/">Docs</a>
+              <a href="/guide">Guide</a>
             </li>
+          
             <li class="active">
               <a href="/command-line">Command Line</a>
             </li>
+          
             <li class="">
               <a href="/initializers">Initializers</a>
             </li>
+          
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li>
@@ -102,8 +106,63 @@
     <div class="row">
       <div class="col-md-12 docs">
         <p><code>app-context</code> ships with a convenient command-line to work with your
-application in a simple and standard way.</p>
-<h2>app-context config</h2><h2>app-context console</h2><h2>app-context run &lt;script&gt;</h2><h2>app-context start</h2>
+application in a simple and standard way. Every command will load your application
+context, boot to a certain run level, and then take an action.</p>
+<h2>app-context config</h2><p>Loads to the <code>configured</code> run level and then prints the contents of <code>APP.config</code>.</p>
+<h2>app-context console</h2><p>Loads to the <code>initialized</code> run level and then will create a node REPL that has
+your application context already loaded and initialized. This is great for
+debugging your app&#39;s environment (via <code>APP</code>).</p>
+<p>The REPL also has built-in support for promises. If you run a method that returns
+a promise, the REPL will print the result of the promise when it is resolved or
+print the error if it is rejected. For callbacks, there is a helper method to
+do the same thing through <code>$_</code>. So you can do <code>fs.readFileSync(&#39;./config.json&#39;, $_)</code>.</p>
+<h2>app-context run &lt;script&gt;</h2><p>Loads to the <code>initialized</code> run level and then executes the script that you pass
+in. When the script finishes (resolves it&#39;s promise or calls it&#39;s callback)
+the application will be exited. This is very similar to <code>start</code>, but can be used
+to execute any script in the same environment as your full application.</p>
+<p>In order for <code>app-context</code> to know when your script has completed, you must export
+a method or an object with a key named <code>execute</code> that is a method. Your method
+will be passed the application context and can signal that it is finished by
+returning a promise or taking a second parameter as a callback.</p>
+<p>For example, this method will be called and the application will be exited
+when it finishes.</p>
+<pre><code class="javascript"><span class="hljs-comment">// context is the same as APP</span>
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context</span>) </span>{
+  foo();
+  bar();
+};
+</code></pre>
+<p>Here, the method will be called and the application will be exited when the
+promise is resolved.</p>
+<pre><code class="javascript"><span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context</span>) </span>{
+  <span class="hljs-keyword">return</span> promisedFoo();
+};
+</code></pre>
+<p>This time we use a callback.</p>
+<pre><code class="javascript"><span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context, done</span>) </span>{
+  foo(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+    <span class="hljs-keyword">if</span> (err) { <span class="hljs-keyword">return</span> done(err); }
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'YAY'</span>);
+    done();
+  })
+};
+</code></pre>
+<h2>app-context start</h2><p>Loads to the <code>running</code> run level. When the last initializer finishes
+(resolves it&#39;s promise or calls it&#39;s callback) the application will be
+exited using <code>process.exit()</code>. <code>start</code> will also exit the application if <code>SIGINT</code>
+is sent to the process.</p>
+<p><code>start</code> is great to use with your web app or long-running process. To have your
+process never exit, just don&#39;t close out the final initializer. For instance:</p>
+<pre><code class="javascript"><span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'running'</span>)
+    .use(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context, done</span>) </span>{
+      <span class="hljs-comment">// kick off some long-running job</span>
+      <span class="hljs-comment">// don't call done</span>
+    });
+};
+</code></pre>
+<p>This application can still be exited by sending it a <code>SIGINT</code> (pressing CTRL-C).</p>
+
       </div>
     </div>
   </div>
