@@ -1,3 +1,9 @@
+<style>
+.docs p { font-size: 1.5em; }
+pre { margin-top: 30px; }
+p { font-size: 1.2em; }
+</style>
+
 <div class="jumbotron">
   <div class="container">
     <h1>app-context</h1>
@@ -10,6 +16,39 @@
     <div class="row">
       <div class="col-md-12 docs">
         <%- partial('_docs/overview') %>
+      </div>
+    </div>
+    <div class="row" style="margin-top:50px;">
+      <div class="col-md-5">
+        <h2>Integrated <a href="/command-line">CLI</a></h2>
+        <p>
+          Use the built-in command line to easily run your application and scripts
+          in a consistent environment. No extra code needed.
+        </p>
+      </div>
+      <div class="col-md-5 col-md-offset-1">
+        <h2>Reusable Initializers</h2>
+        <p>
+          Utilize <a href="/initializers">initializers</a> built by others or
+          publish your own to npm and share them with the community.
+        </p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:30px;">
+      <div class="col-md-5">
+        <h2>Simplify Singletons</h2>
+        <p>
+          We all use them (I won't tell). Create your singletons before your app
+          code loads and access them all from the standardized <code>APP</code>
+          variable.
+        </p>
+      </div>
+      <div class="col-md-5 col-md-offset-1">
+        <h2>Ensure Database Connections</h2>
+        <p>
+          Stop letting your applications run without being sure they've connected
+          to the database first. Bake your assertion logic into your initializers.
+        </p>
       </div>
     </div>
   </div>

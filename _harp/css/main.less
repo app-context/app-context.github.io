@@ -60,16 +60,16 @@ footer {
     margin-bottom: 0;
   }
 
-  a,
-  a:focus,
-  a:hover {
-    text-decoration: none;
-    color: lighten(@primary-color, 25%);
-  }
   a:hover {
     color: lighten(@primary-color, 35%);
   }
 }
+
+a { color: lighten(@primary-color, 25%); }
+a, a:focus, a:hover {
+  text-decoration: none;
+}
+a:hover { color: @primary-color; }
 
 .jumbotron {
   margin-bottom: 0;
@@ -88,29 +88,20 @@ footer {
   background-color: #fff;
 }
 
+code {
+  color: @primary-color;
+  background-color: lighten(@primary-color, 58%);
+  &.lobster {
+    font-family: 'Lobster', cursive;
+  }
+}
+
 .docs {
   h1 { margin-top: 50px; }
   h2 { margin-top: 40px; }
   h3 { margin-top: 30px; }
   h4 { margin-top: 20px; }
   h1, h2, h3, h4 { font-weight: 700; }
-
-  p > code,
-  h2 > code,
-  h3 > code,
-  h4 > code,
-  li > code,
-  a > code,
-  span > code,
-  strong > code,
-  em > code {
-    color: @primary-color;
-    background-color: lighten(@primary-color, 58%);
-  }
-
-  code.lobster {
-    font-family: 'Lobster', cursive;
-  }
 
   p:nth-of-type(1) {
     font-size: 1.5em;
