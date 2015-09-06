@@ -94,7 +94,13 @@
       </div>
     </header>
 
-    <div class="jumbotron">
+    <style>
+.docs p { font-size: 1.5em; }
+pre { margin-top: 30px; }
+p { font-size: 1.2em; }
+</style>
+
+<div class="jumbotron">
   <div class="container">
     <h1>app-context</h1>
     <p>Sequential bootloader and context for node applications</p>
@@ -105,10 +111,62 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12 docs">
-        <p><code>app-context</code> is a sequential bootloader and context for your node.js applications.</p>
-<p>-- fill in awesome overview stuff here --</p>
-<p>app-context is motivated by the middleware stack of libraries like express. app-context should provide an ordered initialization of your app and works on the idea of run levels. Each level is assured to be run in order so that you can make sure to load your configuration before trying to use it, or connect to your DBs before booting your HTTP server. The app-context also allows externalization of the boot process to different run levels. With one line of code you can load an application so that you can do things like create a REPL into your fully-initialized application context.</p>
+        <p><code>app-context</code> is a simple, reusable application context and bootloader for your
+node.js applications. It provides a simple, structured way to initialize and
+run your application and scripts in a common environment. Initialization is
+split into run levels (similar to *NIX boot processes) and guarantee sequential
+execution of each run level and initializer within a run level. When your
+application code is run, the full context is always available at <code>APP</code>.</p>
+<p>Just create your <code>app-context.js</code> and go!</p>
+<pre><code class="javascript"><span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'configured'</span>)
+    .use(<span class="hljs-string">'connie'</span>, <span class="hljs-string">'file'</span>, <span class="hljs-string">'config/${environment}.json'</span>);
 
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'connected'</span>)
+    .use(<span class="hljs-string">'mongodb'</span>, <span class="hljs-string">'$mongodb'</span>)
+    .use(<span class="hljs-string">'redis'</span>, {
+      cache: <span class="hljs-string">'$redis.cache'</span>,
+      sessions: <span class="hljs-string">'$redis.sessions'</span>
+    });
+
+  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'running'</span>)
+    .use(<span class="hljs-string">'express'</span>);
+};
+</code></pre>
+
+      </div>
+    </div>
+    <div class="row" style="margin-top:50px">
+      <div class="col-md-5">
+        <h2>Integrated <a href="/command-line">CLI</a></h2>
+        <p>
+          Use the built-in command line to easily run your application and scripts
+          in a consistent environment. No extra code needed.
+        </p>
+      </div>
+      <div class="col-md-5 col-md-offset-1">
+        <h2>Reusable Initializers</h2>
+        <p>
+          Utilize <a href="/initializers">initializers</a> built by others or
+          publish your own to npm and share them with the community.
+        </p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:30px">
+      <div class="col-md-5">
+        <h2>Simplify Singletons</h2>
+        <p>
+          We all use them (I won't tell). Create your singletons before your app
+          code loads and access them all from the standardized <code>APP</code>
+          variable.
+        </p>
+      </div>
+      <div class="col-md-5 col-md-offset-1">
+        <h2>Ensure Database Connections</h2>
+        <p>
+          Stop letting your applications run without being sure they've connected
+          to the database first. Bake your assertion logic into your initializers.
+        </p>
       </div>
     </div>
   </div>
