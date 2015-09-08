@@ -135,17 +135,27 @@ execution of each run level and initializer within a run level. When your
 application code is run, the full context is always available at <code>APP</code>.</p>
 <p>Just create your <code>app-context.js</code> and go!</p>
 <pre><code class="javascript"><span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params"></span>) </span>{
+  <span class="hljs-comment">// initializers that run at the configured run level</span>
   <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'configured'</span>)
-    .use(<span class="hljs-string">'connie'</span>, <span class="hljs-string">'file'</span>, <span class="hljs-string">'config/${environment}.json'</span>);
+    <span class="hljs-comment">// attach a local config file to the context (available later at APP.config)</span>
+    .use(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">context</span>) </span>{
+      context.config = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./config.json'</span>);
+    });
 
+  <span class="hljs-comment">// initializers that run at the connected run level</span>
   <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'connected'</span>)
+    <span class="hljs-comment">// connect to mongodb using APP.config.mongodb (available later at APP.mongodb)</span>
     .use(<span class="hljs-string">'mongodb'</span>, <span class="hljs-string">'$mongodb'</span>)
+    <span class="hljs-comment">// connect to 2 redis servers (APP.config.redis.cache, APP.config.redis.sessions)</span>
+    <span class="hljs-comment">// (available later at APP.redis.cache, APP.redis.sessions)</span>
     .use(<span class="hljs-string">'redis'</span>, {
       cache: <span class="hljs-string">'$redis.cache'</span>,
       sessions: <span class="hljs-string">'$redis.sessions'</span>
     });
 
+  <span class="hljs-comment">// initializers that run at the running run level</span>
   <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'running'</span>)
+    <span class="hljs-comment">// create, initialize, and start an express app</span>
     .use(<span class="hljs-string">'express'</span>);
 };
 </code></pre>

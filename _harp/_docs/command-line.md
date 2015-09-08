@@ -2,22 +2,37 @@
 application in a simple and standard way. Every command will load your application
 context, boot to a certain run level, and then take an action.
 
-## app-context config
+## Starting an Application
 
-Loads to the `configured` run level and then prints the contents of `APP.config`.
+```bash
+$ app-context start
+```
 
-## app-context console
+Loads to the `running` run level. When the last initializer finishes
+(resolves it's promise or calls it's callback) the application will be
+exited using `process.exit()`. `start` will also exit the application if `SIGINT`
+is sent to the process.
 
-Loads to the `initialized` run level and then will create a node REPL that has
-your application context already loaded and initialized. This is great for
-debugging your app's environment (via `APP`).
+`start` is great to use with your web app or long-running process. To have your
+process never exit, just don't close out the final initializer. For instance:
 
-The REPL also has built-in support for promises. If you run a method that returns
-a promise, the REPL will print the result of the promise when it is resolved or
-print the error if it is rejected. For callbacks, there is a helper method to
-do the same thing through `$_`. So you can do `fs.readFileSync('./config.json', $_)`.
+```javascript
+module.exports = function() {
+  this.runlevel('running')
+    .use(function(context, done) {
+      // kick off some long-running job
+      // don't call done
+    });
+};
+```
 
-## app-context run &lt;script&gt;
+This application can still be exited by sending it a `SIGINT` (pressing CTRL-C).
+
+## Running a script
+
+```bash
+$ app-context run <script>
+```
 
 Loads to the `initialized` run level and then executes the script that you pass
 in. When the script finishes (resolves it's promise or calls it's callback)
@@ -61,24 +76,37 @@ module.exports = function(context, done) {
 };
 ```
 
-## app-context start
+## Printing the Configuration
 
-Loads to the `running` run level. When the last initializer finishes
-(resolves it's promise or calls it's callback) the application will be
-exited using `process.exit()`. `start` will also exit the application if `SIGINT`
-is sent to the process.
-
-`start` is great to use with your web app or long-running process. To have your
-process never exit, just don't close out the final initializer. For instance:
-
-```javascript
-module.exports = function() {
-  this.runlevel('running')
-    .use(function(context, done) {
-      // kick off some long-running job
-      // don't call done
-    });
-};
+```bash
+$ app-context config
 ```
 
-This application can still be exited by sending it a `SIGINT` (pressing CTRL-C).
+Loads to the `configured` run level and then prints the contents of `APP.config`.
+
+## Starting a REPL Console
+
+```bash
+$ app-context console
+```
+
+Loads to the `initialized` run level and then will create a node REPL that has
+your application context already loaded and initialized. This is great for
+debugging your app's environment (via `APP`).
+
+The REPL also has built-in support for promises. If you run a method that returns
+a promise, the REPL will print the result of the promise when it is resolved or
+print the error if it is rejected. For callbacks, there is a helper method to
+do the same thing through `$_`. So you can do `fs.readFileSync('./config.json', $_)`.
+
+## Changing the Environment
+
+`app-context` bases it's current environment on the value of `NODE_ENV`. So to
+run any of the above commands in a specific environment, just change the value
+of `NODE_ENV`.
+
+For instance, to run your application in production mode, you could just run:
+
+```bash
+$ NODE_ENV=production app-context start
+```
