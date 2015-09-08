@@ -71,6 +71,8 @@ function formatNumber(n) {
 }
 
 $(function() {
+  hljs.initHighlighting();
+
   $(document).on('click', '.example-trigger', function(e) {
     $(this).next('.initializer').find('.example').slideToggle();
   });
@@ -82,14 +84,12 @@ $(function() {
     var initializers = packages.sort(function(l, r) {
       return l.name.localeCompare(r.name);
     }).map(function(pkg) {
-      var $el = $(template.render(pkg));
-      if (pkg.example) {
-        hljs.highlightBlock($el.find('.example pre')[0]);
-      }
-      return $el;
+      return $(template.render(pkg));
     });
 
-    $initializers.html(initializers);
+    $initializers.html(initializers).find('pre code').each(function(i, block) {
+      hljs.highlightBlock(block);
+    });
   });
 });
 </script>
