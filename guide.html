@@ -127,8 +127,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-12 docs">
-        <h2>Installation</h2><p>Install <code>app-context</code> globally to make use of the built-in <a href="/command-line">Command Line</a>.</p>
-<pre><code class="bash">$ npm install -g app-context
+        <h2>Installation</h2><pre><code class="bash">$ npm install -g app-context
 </code></pre>
 <h2>Usage</h2><p>To use <code>app-context</code> to boot your application all you need is to install
 <code>app-context</code> globally and then create your context file. By default, <code>app-context</code>
@@ -223,9 +222,17 @@ initializer, just call <code>.use(&#39;mongodb&#39;, &#39;mongdb://localhost:270
 package named <code>app-context-{initializer name}</code>. If that package does not exist
 in your <code>node_modules</code> directory, <code>app-context</code> will attempt to npm install that
 package, saving it to your <code>package.json</code> file.</p>
-<h4>Available initializers</h4><p>For a list of currently available initializers that can be auto-installed, check
-out <a href="https://www.npmjs.com/browse/keyword/app-context">https://www.npmjs.com/browse/keyword/app-context</a> for now. There will be a
-listing webpage at some point in the future.</p>
+<h4>Public initializer registry</h4><p>For a list of currently available initializers that can be auto-installed, check
+out <a href="http://app-contextjs.com/initializers">http://app-contextjs.com/initializers</a>.</p>
+<h4>Scoped initializers</h4><p>If you&#39;d like to publish initializers for your own use that you would not like
+to be listed in the public registry, just publish your initializer package in a
+scope. You can then reference your initializer for automatic installation and use
+by using the scoped package name.</p>
+<pre><code class="javascript">  <span class="hljs-keyword">this</span>.runlevel(<span class="hljs-string">'initialized'</span>)
+    <span class="hljs-comment">// loads the @mattinsler/special-sauce npm package</span>
+    .use(<span class="hljs-string">'@mattinsler/special-sauce'</span>);
+</code></pre>
+<p>For information on how to publish a scoped module, <a href="https://docs.npmjs.com/getting-started/scoped-packages">check here</a>.</p>
 <h2>Run Levels</h2><p>Run levels represent the different states that application can be in. They are
 loaded sequentially. So when you load your application to the <code>initialized</code> run
 level, <code>app-context</code> will first load the <code>setup</code>, <code>configured</code>, and <code>connected</code>
@@ -353,8 +360,6 @@ exports.index = <span class="hljs-function"><span class="hljs-keyword">function<
 <li>APP.<strong>root</strong> - <em>root directory of the app (where the package.json or app-context.js was found)</em></li>
 <li>APP.<strong>environment</strong> - <em>NODE_ENV environment variable - defaults to <code>development</code></em></li>
 <li>APP.<strong>config</strong> - <em>where configuration should be written to (defaulted to <code>{}</code>)</em></li>
-<li>APP.<strong>runlevels</strong> - <em>(internal)</em></li>
-<li>APP.<strong>currentRunlevel</strong> - <em>(internal)</em></li>
 </ul>
 
       </div>
